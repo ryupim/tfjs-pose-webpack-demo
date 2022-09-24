@@ -5,28 +5,55 @@ import '@mediapipe/pose';
 
 import * as poseDetection from '@tensorflow-models/pose-detection';
 
+import WebCamera from './webCamera';
 import World from './world'; //webpack.config.jsのresolveに設定があるため、拡張子は不要
 
 const root: HTMLElement | null = document.getElementById("root");
 const world = new World("Hello World!!!!");
 world.sayHello(root);
 
+WebCamera();
 Run();
 
 async function Run() {
     const model = poseDetection.SupportedModels.MoveNet;
     const detector = await poseDetection.createDetector(model);
 
-    const PATH = "../img/pose1.jpg";
-    const image = await loadImage(PATH);
-    // manual input
-    image.setAttribute("width", "467");
-    image.setAttribute("height", "700");
-    console.log("image", image);
+    const object: string = "image";
 
-    const poses = await detector.estimatePoses(image);
-    console.log(poses);
+    if (object === "image") {
+        const PATH = "../img/pose1.jpg";
+        const image = await loadImage(PATH);
+        // manual input
+        image.setAttribute("width", "467");
+        image.setAttribute("height", "700");
+        console.log("image", image);
+
+        const poses = await detector.estimatePoses(image);
+        console.log(poses);
+    } else if (object === "video") {
+        setInterval(() => {
+            detect(detector);
+        }, 100);
+    }
 }
+
+const detect = async (detector: poseDetection.PoseDetector) => {
+    const videoElement = document.getElementById(
+        "video"
+    ) as HTMLVideoElement | null;
+    if (videoElement !== null) {
+        // Get Video Properties
+        videoElement.setAttribute("width", "640");
+        videoElement.setAttribute("height", "480");
+
+        // Make Detections
+        const pose = await detector.estimatePoses(videoElement);
+        console.log(pose);
+
+        // drawCanvas(pose, video, videoWidth, videoHeight, canvasRef);
+    }
+};
 
 async function loadImage(imagePath: string) {
     const canvas = <HTMLCanvasElement>document.getElementById("canvas");
