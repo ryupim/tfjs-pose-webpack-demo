@@ -9,8 +9,8 @@ import WebCamera from './webCamera';
 import World from './world'; //webpack.config.jsのresolveに設定があるため、拡張子は不要
 
 const root: HTMLElement | null = document.getElementById("root");
-const world = new World("Hello World!!!!");
-world.sayHello(root);
+// const world = new World("Hello World!!!!");
+// world.sayHello(root);
 
 WebCamera();
 Run();
@@ -19,7 +19,7 @@ async function Run() {
     const model = poseDetection.SupportedModels.MoveNet;
     const detector = await poseDetection.createDetector(model);
 
-    const object: string = "image";
+    const object: string = "video";
 
     if (object === "image") {
         const PATH = "../img/pose1.jpg";
@@ -48,15 +48,18 @@ const detect = async (detector: poseDetection.PoseDetector) => {
         videoElement.setAttribute("height", "480");
 
         // Make Detections
-        const pose = await detector.estimatePoses(videoElement);
-        console.log(pose);
+        console.log("videoElement", videoElement);
+        detector.estimatePoses(videoElement).then(function (pose: any) {
+            console.log("pose result", pose[0]);
+            drawKeypoints(pose[0]);
+        });
 
         // drawCanvas(pose, video, videoWidth, videoHeight, canvasRef);
     }
 };
 
 async function loadImage(imagePath: string) {
-    const canvas = <HTMLCanvasElement>document.getElementById("canvas");
+    const canvas = <HTMLCanvasElement>document.getElementById("canvas-image");
     let ctx: CanvasRenderingContext2D | null;
     if (canvas !== null) {
         ctx = canvas.getContext("2d");
@@ -81,4 +84,49 @@ async function loadImage(imagePath: string) {
 
     image.src = imagePath;
     return image;
+}
+
+const poseStore: any = {};
+const webcamCanvas = document.getElementById(
+    "webacamCanvas"
+) as HTMLCanvasElement;
+const webcamCtx: CanvasRenderingContext2D | null =
+    webcamCanvas.getContext("2d");
+
+function drawKeypoints(pose: { keypoints: any[] }) {
+    const canvasSize = { width: 640, height: 480 };
+    if (webcamCtx !== null) {
+        webcamCtx.clearRect(0, 0, canvasSize.width, canvasSize.height);
+    }
+
+    //TODO: fix inaccurate value of x & y
+    pose.keypoints.forEach(
+        (keypoint: { score: number; name: string; x: number; y: number }) => {
+            if (keypoint.score > 0.4) {
+                poseStore[keypoint.name] = {
+                    x: 480 / 2 - keypoint.x,
+                    y: 320 / 2 - keypoint.y,
+                };
+
+                if (webcamCtx !== null) {
+                    webcamCtx.beginPath();
+                    webcamCtx.fillStyle = "rgb(255, 255, 0)"; // yellow
+                    webcamCtx.arc(
+                        keypoint.x,
+                        keypoint.y,
+                        5,
+                        (10 * Math.PI) / 180,
+                        (80 * Math.PI) / 180,
+                        true
+                    );
+                    webcamCtx.fill();
+                    webcamCtx.fillText(
+                        keypoint.name,
+                        keypoint.x,
+                        keypoint.y + 10
+                    );
+                }
+            }
+        }
+    );
 }

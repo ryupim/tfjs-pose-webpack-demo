@@ -5,6 +5,7 @@
     "main": "index.js",
     "scripts": {
         "build": "webpack --mode=production",
+        "watch": "webpack --mode=production --watch --config ./webpack.config.js",
         "start": "webpack-cli serve --mode development"
     },
     "author": "",
