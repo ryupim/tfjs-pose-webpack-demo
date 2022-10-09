@@ -27,10 +27,10 @@ async function Run() {
         // manual input
         image.setAttribute("width", "467");
         image.setAttribute("height", "700");
-        console.log("image", image);
+        // console.log("image", image);
 
         const poses = await detector.estimatePoses(image);
-        console.log(poses);
+        // console.log(poses);
     } else if (object === "video") {
         setInterval(() => {
             detect(detector);
@@ -48,9 +48,8 @@ const detect = async (detector: poseDetection.PoseDetector) => {
         videoElement.setAttribute("height", "480");
 
         // Make Detections
-        console.log("videoElement", videoElement);
         detector.estimatePoses(videoElement).then(function (pose: any) {
-            console.log("pose result", pose[0]);
+            // console.log("pose result", pose[0]);
             drawKeypoints(pose[0]);
         });
 
